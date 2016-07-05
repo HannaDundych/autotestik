@@ -1,17 +1,15 @@
-# encoding: UTF-8
-# coding: Utf-8
-
 require 'test/unit'
 require 'selenium-webdriver'
 class TestRegistration < Test::Unit::TestCase
+
   def setup
     @driver = Selenium::WebDriver.for :chrome
+    @wait = Selenium::WebDriver::Wait.new(:timeout => 10)
     @url = "http://demo.redmine.org/"
   end
 
   def teardown
     @driver.quit
-
   end
 
 
@@ -19,8 +17,6 @@ class TestRegistration < Test::Unit::TestCase
     register_user
     expected_text = "Your account has been activated. You can now log in."
     actual_text = @driver.find_element(:id, 'flash_notice').text
-
-    #sleep 300
     assert_equal(expected_text, actual_text)
   end
 
@@ -47,19 +43,18 @@ class TestRegistration < Test::Unit::TestCase
   def test_create_project_version
     register_user
     create_new_proj
-
     number_versions_before = @driver.find_elements(:class, 'version').length
     create_project_version 'version1'
-    sleep 3
+    @wait.until { @driver.find_element(:css, "table[class*='versions']").displayed? }
     number_versions_after = @driver.find_elements(:class, 'version').length
     assert_equal(number_versions_before + 1, number_versions_after)
-
-
   end
+
 
   def test_create_issues
     register_user
     create_new_proj
+    @wait.until {@driver.find_element(:class, 'issues').displayed?}
     @driver.find_element(:class, 'issues').click
     number_issues_before = @driver.find_elements(:class, 'issue').length
 
@@ -81,7 +76,7 @@ class TestRegistration < Test::Unit::TestCase
     create_new_proj
     numbers_active_users_before = @driver.find_elements(:class, 'active').length
     add_user_to_project created_login
-    sleep 3
+    @wait.until { @driver.find_elements(:class, 'active').displayed? }
     numbers_active_users_after = @driver.find_elements(:class, 'active').length
     assert_equal(numbers_active_users_before + 1, numbers_active_users_after)
   end
@@ -120,7 +115,7 @@ class TestRegistration < Test::Unit::TestCase
     @driver.find_element(:id, 'user_lastname').send_keys 'last name'
     @driver.find_element(:id, 'user_mail').send_keys (login + '@klkl.com')
     @driver.find_element(:name, 'commit').click
-    return login
+     login
 
   end
 
@@ -151,30 +146,32 @@ class TestRegistration < Test::Unit::TestCase
     @driver.find_element(:id, 'project_description').send_keys '1234'
     @driver.find_element(:id, 'project_identifier').send_keys project_name
     @driver.find_element(:name, 'commit').click
-    return project_name
+    project_name
   end
 
-  def create_project_version (version_name)
+  def create_project_version(version_name)
     @driver.find_element(:id, 'tab-versions').click
-    sleep 2
-    @driver.find_elements(:class, 'icon-add')[1].click
-    sleep 5
+    @wait.until { @driver.find_element(:css, 'div[id=tab-content-versions] a[class*=icon-add]').displayed? }
+    @driver.find_element(:css, 'div[id=tab-content-versions] a[class*=icon-add]').click
+
+    @wait.until { @driver.find_element(:id, 'version_name').displayed? }
     @driver.find_element(:id, 'version_name').send_keys version_name
     @driver.find_element(:name, 'commit').click
   end
 
-  def create_issue (issue_type_name, subject)
+  def create_issue(issue_type_name, subject)
     @driver.find_element(:class, 'new-issue').click
-    sleep 2
+
+    @wait.until{@driver.find_element(:id, 'issue_tracker_id').displayed?}
     @driver.find_element(:id, 'issue_tracker_id').click
     @driver.find_element(:id, 'issue_tracker_id').send_keys [issue_type_name[0], :enter]
-    sleep 2
+      @wait.until{@driver.find_element(:id, 'issue_subject').displayed?}
     @driver.find_element(:id, 'issue_subject').send_keys subject
     @driver.find_element(:name, 'commit').click
   end
 
 
-  def change_password (old_password, new_password)
+  def change_password(old_password, new_password)
 
     @driver.find_element(:class, 'my-account').click
     @driver.find_element(:class, 'icon-passwd').click
@@ -186,20 +183,20 @@ class TestRegistration < Test::Unit::TestCase
   end
 
 
-  def add_user_to_project (user_name)
+  def add_user_to_project(user_name)
 
     @driver.find_element(:id, 'tab-members').click
     @driver.find_element(:class, 'icon-add').click
-    sleep 5
+    @wait.until { @driver.find_element(:id, 'principal_search').displayed? }
     @driver.find_element(:id, 'principal_search').send_keys user_name
-    sleep 5
+    @wait.until{@driver.find_elements(:name, 'membership[user_ids][]').length==1}
     users_list = @driver.find_elements(:name, 'membership[user_ids][]')
-    assert users_list.length==1
     users_list.first.click
     roles_list = @driver.find_elements(:name, 'membership[role_ids][]')
     roles_list[4].click
     @driver.find_element(:id, 'member-add-submit').click
 
   end
+
 
 end
