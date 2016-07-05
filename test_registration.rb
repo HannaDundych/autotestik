@@ -13,6 +13,7 @@ class TestRegistration < Test::Unit::TestCase
   end
 
 
+
   def test_positive_registration
     register_user
     expected_text = "Your account has been activated. You can now log in."
@@ -54,7 +55,7 @@ class TestRegistration < Test::Unit::TestCase
   def test_create_issues
     register_user
     create_new_proj
-    @wait.until {@driver.find_element(:class, 'issues').displayed?}
+    @wait.until { @driver.find_element(:class, 'issues').displayed? }
     @driver.find_element(:class, 'issues').click
     number_issues_before = @driver.find_elements(:class, 'issue').length
 
@@ -76,7 +77,7 @@ class TestRegistration < Test::Unit::TestCase
     create_new_proj
     numbers_active_users_before = @driver.find_elements(:class, 'active').length
     add_user_to_project created_login
-    @wait.until { @driver.find_elements(:class, 'active').displayed? }
+    @wait.until { @driver.find_elements(:class, 'active').first.displayed? }
     numbers_active_users_after = @driver.find_elements(:class, 'active').length
     assert_equal(numbers_active_users_before + 1, numbers_active_users_after)
   end
@@ -100,13 +101,13 @@ class TestRegistration < Test::Unit::TestCase
 
   end
 
-  ######### Helpers
+######### Helpers
 
   def register_user
     @driver.navigate.to @url
     @driver.find_element(:class, 'register').click
 
-    login = ('login'+ rand(9999).to_s)
+    login = ('login'+ Time.now.to_i.to_s)
 
     @driver.find_element(:id, 'user_login').send_keys login
     @driver.find_element(:id, 'user_password').send_keys 'qwerty'
@@ -115,7 +116,7 @@ class TestRegistration < Test::Unit::TestCase
     @driver.find_element(:id, 'user_lastname').send_keys 'last name'
     @driver.find_element(:id, 'user_mail').send_keys (login + '@klkl.com')
     @driver.find_element(:name, 'commit').click
-     login
+    login
 
   end
 
@@ -162,10 +163,10 @@ class TestRegistration < Test::Unit::TestCase
   def create_issue(issue_type_name, subject)
     @driver.find_element(:class, 'new-issue').click
 
-    @wait.until{@driver.find_element(:id, 'issue_tracker_id').displayed?}
+    @wait.until { @driver.find_element(:id, 'issue_tracker_id').displayed? }
     @driver.find_element(:id, 'issue_tracker_id').click
     @driver.find_element(:id, 'issue_tracker_id').send_keys [issue_type_name[0], :enter]
-      @wait.until{@driver.find_element(:id, 'issue_subject').displayed?}
+    @wait.until { not @driver.find_element(:id, 'ajax-indicator').displayed? }
     @driver.find_element(:id, 'issue_subject').send_keys subject
     @driver.find_element(:name, 'commit').click
   end
@@ -189,7 +190,7 @@ class TestRegistration < Test::Unit::TestCase
     @driver.find_element(:class, 'icon-add').click
     @wait.until { @driver.find_element(:id, 'principal_search').displayed? }
     @driver.find_element(:id, 'principal_search').send_keys user_name
-    @wait.until{@driver.find_elements(:name, 'membership[user_ids][]').length==1}
+    @wait.until { @driver.find_elements(:name, 'membership[user_ids][]').length==1 }
     users_list = @driver.find_elements(:name, 'membership[user_ids][]')
     users_list.first.click
     roles_list = @driver.find_elements(:name, 'membership[role_ids][]')
