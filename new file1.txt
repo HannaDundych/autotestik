@@ -1,3 +1,4 @@
+
 require 'test/unit'
 require 'selenium-webdriver'
 class TestRegistration < Test::Unit::TestCase
@@ -10,4 +11,15 @@ class TestRegistration < Test::Unit::TestCase
 
   def teardown
     @driver.quit
+
+def test_add_user_to_project
+    created_login = register_user
+    logout_user
+    register_user
+    create_new_proj
+    numbers_active_users_before = @driver.find_elements(:class, 'active').length
+    add_user_to_project created_login
+    @wait.until { @driver.find_elements(:class, 'active').first.displayed? }
+    numbers_active_users_after = @driver.find_elements(:class, 'active').length
+    assert_equal(numbers_active_users_before + 1, numbers_active_users_after)
 end
