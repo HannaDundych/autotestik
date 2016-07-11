@@ -1,0 +1,13 @@
+require 'test/unit'
+require 'selenium-webdriver'
+class TestRegistration < Test::Unit::TestCase
+
+  def setup
+    @driver = Selenium::WebDriver.for :chrome
+    @wait = Selenium::WebDriver::Wait.new(:timeout => 10)
+    @url = "http://demo.redmine.org/"
+  end
+
+  def teardown
+    @driver.quit
+end
